@@ -25,11 +25,12 @@
 <body>
 	<pre id="console">
   	<!-- Hier landet später der Output aus Javascript -->
-  </pre>
-
+	</pre>
+	<script src="klassen.js"></script>
 	<script>
-		const invaderWidth = 7;
-		const invaderHeight = 5;
+		const invaderWidth = 4;
+		const invaderHeight = 4;
+		const invaderDistance = 4;
 		let renderStr = "";
 		let rows = 50;
 		let cols = 140;
@@ -37,7 +38,12 @@
 		let spaceshipPos = Math.round(cols / 2);
 		let currentBullets = [];
 		let invaders = [];
+		let currentInvaders = [];
 		let obstacles = [];
+		let run = 0;
+		let xoffset = 0;
+		let yoffset = 0;
+		let right = true;
 
 		/*
 		 *	SPIELELOGIK
@@ -47,47 +53,49 @@
 			//TODO Punktestände
 
 			//TODO Invaders erzeugen und in Array (invaders) schreiben damit sie gerendet werden können
+			function generateInvader(width, height) {
+			let invadertemp = [];
+			for (let u = 0; u < height; u++) {
+				invadertemp[u] = " ".repeat(width * 2 + 1);
+				for (let i = 0; i < width; i++) {
+					let number = Math.random();
+					if (number >= 0.5) {
+						invadertemp[u] = (setCharsAt(invadertemp[u], i, '▣'));
+						invadertemp[u] = (setCharsAt(invadertemp[u], 2 * width - i, '▣'));
 
+					} else {
+						invadertemp[u] = (setCharsAt(invadertemp[u], i, ''));
+						invadertemp[u] = (setCharsAt(invadertemp[u], 2 * width - i, ''));
+					}
+				}
+			}
+			return invadertemp;
+		}			
+		  invaders.push(generateInvader(invaderWidth, invaderHeight))
+			invaders.push(generateInvader(invaderWidth, invaderHeight))
+			invaders.push(generateInvader(invaderWidth, invaderHeight))
+			invaders.push(generateInvader(invaderWidth, invaderHeight))
+			invaders.push(generateInvader(invaderWidth, invaderHeight))
+			invaders.push(generateInvader(invaderWidth, invaderHeight))
+			invaders.push(generateInvader(invaderWidth, invaderHeight))
+			invaders.push(generateInvader(invaderWidth, invaderHeight))
+		}
 			//Obstacles erzeugen
 			obstacles.push({
 				x: Math.round(cols / 2) - 5,
 				y: rows - 10,
 				width: 10,
 				height: 3,
-				char: "❤"
-			})			
-			invaders.push(generateInvader(invaderWidth, invaderHeight))
-			invaders.push(generateInvader(invaderWidth, invaderHeight))
-			invaders.push(generateInvader(invaderWidth, invaderHeight))
-			invaders.push(generateInvader(invaderWidth, invaderHeight))
-			invaders.push(generateInvader(invaderWidth, invaderHeight))
-			invaders.push(generateInvader(invaderWidth, invaderHeight))
-		}
+				char: "▣"
+			})
 
-		function generateInvader(width, height) {
-			let invadertemp = [];
-			for (let u = 0; u < height; u++) {
-				invadertemp[u] = " ".repeat(width*2+1);
-				for (let i = 0; i < width; i++) {
-					let number = Math.random();
-					if (number >= 0.5) {
-					invadertemp[u] = (setCharsAt(invadertemp[u], i, '▄'));
-					invadertemp[u] = (setCharsAt(invadertemp[u], 2 * width - i, '▄'));		
-					}	
-				}
-			} 
-			return invadertemp;
-		}
 
 		function fireBullet() {
 			currentBullets.push({
 				x: spaceshipPos + 3,
-				y: rows - 4
+				y: rows - 3
 			});
 		}
-
-
-
 
 		/*
 		 *	HELFERFUNKTIONEN
@@ -132,7 +140,7 @@
 			let str = ""
 			for (var i = 0; i < rows; i++) {
 				for (var j = 0; j < cols; j++) {
-					if (i == cnt + Math.round(Math.random() * 20)) str += "´"
+					if (i == cnt + Math.round(Math.random() * 50)) str += "´"
 					else str += " "
 				}
 				str += "\n"
@@ -144,9 +152,10 @@
 
 		function renderSpaceship(posX, posY) {
 			//Spaceship-Array
-			let spaceship = ["   💗   ",
-											 "🖤🖤🖤🖤",
-										   "🖤🖤🖤🖤"
+			let spaceship = 
+			[ "   Ψ   ",
+				"╔══╩══╗",
+				"▒▒▒▒▒▒▒"
 			]
 
 			for (var i = 0; i < spaceship.length; i++) {
@@ -165,28 +174,51 @@
 			});
 		}
 
-		function renderBullets() { 
+		function renderBullets() {
 			//TODO: Prüfen ob eine Kugel einen Invader oder ein Obstacle trifft, wenn ja Aktion auslösen
+
 
 			//Kugeln entfernen die am oberen Rand angekommen sind ohne Treffer
 			currentBullets = currentBullets.filter(bullet => bullet.y > 1);
 			//Kugeln einen Schritt weiter bewegen, dann rendern
 			currentBullets.forEach((bullet) => {
-				bullet.y -= 1;
-				renderStr = setCharsAt(renderStr, xyToStringPos(bullet.x, bullet.y), "❤");
+				bullet.y -= 2;
+				renderStr = setCharsAt(renderStr, xyToStringPos(bullet.x, bullet.y), "|" );
 			})
 		}
-					
+
 		function renderInvaders(invader, xpos, ypos) {
-			for (let i = 0; i < invaders.length; i++) {
-				for (let u = 0; u < invaders[i].length; u++) {
-				renderStr = setCharsAt(renderStr, xyToStringPos(xpos, ypos+u), invaders[i][u]);
-				// reverseString(renderStr = setCharsAt(renderStr,xyToStringPos((invader[u].length) - i + xpos, u + ypos),invader[u]));
+			run++;
+			if (run >= 0.5) {
+				run = 0;
+				if (right) {
+					xoffset += 0.5;
+				} else {
+					xoffset -= 0.5;
 				}
-				xpos = xpos + ((cols/5 - invaderWidth*2) + invaderWidth)
+			}
+
+			let rowWidth = (invaders.length * ((invaderWidth * 2) + 1)) + ((invaders.length - 1) * invaderDistance);
+			if (xoffset + rowWidth >= cols) {
+				right = false;
+				yoffset++;
+			} else if (xoffset <= 0) {
+				right = true;
+				yoffset++;
+			}
+
+			for (let i = 0; i < invaders.length; i++) {
+				const oneInvader = invaders[i];
+				console.log(oneInvader);
+				for (let j = 0; j < oneInvader.length; j++) {
+					const oneLine = oneInvader[j];
+					renderStr = setCharsAt(renderStr, xyToStringPos((i * (((invaderWidth * 2) + 1) + invaderDistance)) + xoffset,
+						j + yoffset), oneLine)
+				}
 			}
 		}
-	
+		
+
 
 		//Hauptrenderfunktion
 		function render() {
@@ -211,7 +243,7 @@
 
 		//Es geht los - alle 40 Millisekunden rendern
 		newGame();
-		setInterval(render, 40)
+		setInterval(render, 170)
 	</script>
 </body>
 
