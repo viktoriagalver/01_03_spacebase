@@ -5,6 +5,7 @@
 <head>
 	<meta charset="utf-8">
 	<title>SPACE INVADERS</title>
+	<link href = "style.css" rel = "stylesheet" />
 	<style>
 		pre {
 			position: absolute;
@@ -26,6 +27,7 @@
 	<pre id="console">
   	<!-- Hier landet später der Output aus Javascript -->
 	</pre>
+	<p id="scoreboard" class="scoreboard">punkte</p>
 	<script src="klassen.js"></script>
 	<script>
 		const invaderWidth = 4;
@@ -43,7 +45,9 @@
 		let run = 0;
 		let xoffset = 0;
 		let yoffset = 0;
+		let invaderDirection = 1;
 		let right = true;
+		let score = 0;
 
 		/*
 		 *	SPIELELOGIK
@@ -90,10 +94,10 @@
 			})
 
 
-		function fireBullet() {
+			function fireBullet() {
 			currentBullets.push({
 				x: spaceshipPos + 3,
-				y: rows - 3
+				y: rows - 4
 			});
 		}
 
@@ -182,7 +186,18 @@
 			currentBullets = currentBullets.filter(bullet => bullet.y > 1);
 			//Kugeln einen Schritt weiter bewegen, dann rendern
 			currentBullets.forEach((bullet) => {
-				bullet.y -= 2;
+				bullet.y -= 1;
+				//prüfen, ob Kugel Invader berührt
+				if (renderStr[xyToStringPos(bullet.x, bullet.y - 1)] == '▣') {
+					for (let i = 0; i < 6; i++) {
+						invaders[i] = [];
+					}
+					//wenn getroffen wurde, 'puff'
+					invaders[2] = ["puff"]
+					//score auf 1 gesetzt
+					score = 1; 
+
+				}
 				renderStr = setCharsAt(renderStr, xyToStringPos(bullet.x, bullet.y), "|" );
 			})
 		}
@@ -232,7 +247,7 @@
 			renderSpaceship(spaceshipPos, rows - 3, renderStr);
 
 			//Render Invaders
-			renderInvaders(invaders, 5, 1, renderStr);
+			renderInvaders(xoffset, yoffset, invaders, renderStr);
 
 			//Render Bullets
 			renderBullets(renderStr);
@@ -243,7 +258,7 @@
 
 		//Es geht los - alle 40 Millisekunden rendern
 		newGame();
-		setInterval(render, 170)
+		setInterval(render, 40)
 	</script>
 </body>
 

@@ -1,0 +1,11 @@
+.score {
+  background-color: black;
+  color: rgb(240, 178, 214);
+  font-size: 20px;
+  text-align: center;
+  border: 1px solid rgb(240, 178, 214);
+  position: absolute;
+  top: 5vh;
+  right: 1.5vh;
+  width: 15ch;
+}
